@@ -3,208 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anonimous Messages</title>
+    <title>AnonymousGhost - Social Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+        .message {
+            animation: fadeIn 0.5s ease-out;
         }
-        .message-container {
-            transition: all 0.3s ease;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .message-container:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        .expiring-soon {
+            border-left: 4px solid #f59e0b;
         }
-        .typing-indicator {
-            display: none;
-        }
-        #messageInput:focus + .typing-indicator {
-            display: block;
+        .expired {
+            opacity: 0.6;
+            border-left: 4px solid #ef4444;
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-100">
-    <div class="container mx-auto px-4 py-12 max-w-4xl">
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
         <!-- Header -->
-        <header class="mb-10 text-center">
-            <h1 class="text learn-4xl font-bold text-gray-900">
-                <span class="text-purple-600">Anonimous</span> Messages
-            </h1>
-            <p class="mt-2 text-lg text-gray-600">
-                Share your thoughts freely - no accounts, no tracking
-            </p>
+        <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold flex items-center">
+                        <i class="fas fa-ghost mr-3"></i>
+                        AnonymousGhost
+                    </h1>
+                    <p class="text-indigo-200 mt-1">Platform sosial anonim dengan pesan sementara</p>
+                </div>
+                <div class="flex items-center space-x-2 bg-black bg-opacity-20 px-4 py-2 rounded-full">
+                    <i class="fas fa-user-secret"></i>
+                    <span id="user-id">Anonim-****</span>
+                </div>
+            </div>
         </header>
 
-        <!-- Message Form -->
-        <div class="bg-white rounded-xl shadow-md p-6 mb-10">
-            <div class="mb-4">
-                <h2 class="text-xl font-semibold text-gray-800">Post a Message</h2>
-                <p class="text-sm text-gray-500">Your identity will remain completely hidden</p>
-            </div>
-            <div class="relative">
-                <textarea 
-                    id="messageInput" 
-                    rows="4" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500" 
-                    placeholder="What's on your mind..."></textarea>
-                <div class="typing-indicator absolute top-2 right-2 bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded">
-                    Writing...
+        <!-- Main Content -->
+        <div class="flex flex-col md:flex-row gap-6">
+            <!-- Post Form -->
+            <div class="md:w-1/3">
+                <div class="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                    <h2 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-pencil-alt mr-2"></i>
+                        Kirim Pesan
+                    </h2>
+                    <form id="post-form">
+                        <div class="mb-4">
+                            <textarea id="message-content" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" rows="5" placeholder="Tulis apapun yang ingin Anda sampaikan..."></textarea>
+                        </div>
+                        <div class="flex items-center mb-4">
+                            <input type="checkbox" id="expiry-toggle" checked class="rounded text-indigo-600 focus:ring-indigo-500">
+                            <label for="expiry-toggle" class="ml-2 text-sm text-gray-700">Hilang dalam 24 jam</label>
+                        </div>
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            Post Anonim
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <h3 class="text-lg font-medium mb-2 flex items-center">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Pedoman Komunitas
+                        </h3>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-indigo-500 mr-2 mt-1"></i>
+                                <span>Hormati privasi dan identitas semua pengguna</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-indigo-500 mr-2 mt-1"></i>
+                                <span>Tidak boleh mengandung konten ilegal atau berbahaya</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-indigo-500 mr-2 mt-1"></i>
+                                <span>Pesan akan hilang setelah 24 jam (default)</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            <div class="flex justify-between items-center mt-4">
-                <div class="text-xs text-gray-400">
-                    Messages auto-delete after 30 days
-                </div>
-                <button 
-                    id="postButton" 
-                    class="px-6 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors">
-                    Post Anonymously
-                </button>
-            </div>
-        </div>
 
-        <!-- Messages Section -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-2xl font-semibold text-gray-800">Recent Messages</h2>
-                <div class="text-sm text-gray-500" id="messageCount">0 messages</div>
-            </div>
-            
-            <div id="messagesContainer" class="space-y-4">
-                <!-- Messages will be loaded here -->
-                <div class="message-container bg-white rounded-xl shadow-sm p-6">
-                    <p class="text-gray-700">This is an example message from another anonymous user. Your messages will appear here!</p>
-                    <div class="mt-3 text-xs text-gray-400 flex justify-between">
-                        <span>Anonymous</span>
-                        <span>Just now</span>
+            <!-- Messages Feed -->
+            <div class="md:w-2/3">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-comments mr-2"></i>
+                            Pesan Terbaru
+                        </h2>
+                        <span id="message-count" class="text-sm bg-gray-100 px-3 py-1 rounded-full">0 pesan</span>
+                    </div>
+                    
+                    <div id="messages-container" class="space-y-4">
+                        <div class="text-center py-10 text-gray-500">
+                            <i class="fas fa-comment-slash text-4xl mb-3 opacity-50"></i>
+                            <p>Belum ada pesan</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Info Section -->
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="font-semibold text-lg text-gray-800 mb-3">How this works</h3>
-            <ul class="space-y-3 text-gray-600">
-                <li class="flex items-start">
-                    <div class="flex-shrink-0 h-5 w-5 text-purple-500 mr-2">•</div>
-                    <span>Messages are stored locally in your browser (no server/database)</span>
-                </li>
-                <li class="flex items-start">
-                    <div class="flex-shrink-0 h-5 w-5 text-purple-500 mr-2">•</div>
-                    <span>No accounts needed - completely anonymous</span>
-                </li>
-                <li class="flex items-start">
-                    <div class="flex-shrink-0 h-5 w-5 text-purple-500 mr-2">•</div>
-                    <span>To share messages with others, send them this HTML file</span>
-                </li>
-                <li class="flex items-start">
-                    <div class="flex-shrink-0 h-5 w-5 text-purple-500 mr-2">•</div>
-                    <span>Messages persist when you refresh the page</span>
-                </li>
-            </ul>
-        </div>
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-sm text-gray-500">
+            <p>AnonymousGhost - Platform sosial anonim tanpa login</p>
+            <p class="mt-1">Semua pesan bersifat sementara dan disimpan secara lokal</p>
+        </footer>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elements
-            const messageInput = document.getElementById('messageInput');
-            const postButton = document.getElementById('postButton');
-            const messagesContainer = document.getElementById('messagesContainer');
-            const messageCount = document.getElementById('messageCount');
+        // Generate random user ID (stored in localStorage)
+        const userId = localStorage.getItem('anonymousUserId') || 
+                       'Anonim-' + Math.random().toString(36).substr(2, 8);
+        localStorage.setItem('anonymousUserId', userId);
+        document.getElementById('user-id').textContent = userId;
 
-            // Load messages from localStorage
-            let messages = JSON.parse(localStorage.getItem('anonymousMessages')) || [
-                {
-                    content: "This is an example message from another anonymous user. Your messages will appear here!",
-                    timestamp: new Date().toISOString()
-                }
-            ];
-
-            // Display all messages
-            function displayMessages() {
-                messagesContainer.innerHTML = '';
-                messageCount.textContent = ${messages.length} message${messages.length !== 1 ? 's' : ''};
-                
-                messages.forEach((message, index) => {
-                    const messageElement = document.createElement('div');
-                    messageElement.className = 'message-container bg-white rounded-xl shadow-sm p-6';
-                    
-                    const timeAgo = getTimeAgo(new Date(message.timestamp));
-                    
-                    messageElement.innerHTML = `
-                        <p class="text-gray-700">${message.content}</p>
-                        <div class="mt-3 text-xs text-gray-400 flex justify-between">
-                            <span>Anonymous</span>
-                            <span>${timeAgo}</span>
-                        </div>
-                    `;
-                    
-                    messagesContainer.prepend(messageElement);
+        // Local storage wrapper
+        const messageStorage = {
+            getMessages: () => {
+                const messages = JSON.parse(localStorage.getItem('anonymousMessages') || '[]');
+                // Filter expired messages
+                const now = new Date();
+                const validMessages = messages.filter(msg => {
+                    if (!msg.expiryTime) return true;
+                    const expiryDate = new Date(msg.expiryTime);
+                    return expiryDate > now;
                 });
+                
+                // Update storage if some messages were expired
+                if (validMessages.length !== messages.length) {
+                    localStorage.setItem('anonymousMessages', JSON.stringify(validMessages));
+                }
+                
+                return validMessages;
+            },
+            addMessage: (content, expires) => {
+                const messages = messageStorage.getMessages();
+                const now = new Date();
+                const expiryTime = expires ? new Date(now.getTime() + 24 * 60 * 60 * 1000) : null;
+                
+                const newMessage = {
+                    id: Date.now().toString(),
+                    content,
+                    timestamp: now.toISOString(),
+                    expiryTime: expiryTime ? expiryTime.toISOString() : null,
+                    userId: userId
+                };
+                
+                messages.unshift(newMessage);
+                localStorage.setItem('anonymousMessages', JSON.stringify(messages));
+                return newMessage;
+            },
+            deleteMessage: (id) => {
+                const messages = messageStorage.getMessages();
+                const updated = messages.filter(msg => msg.id !== id);
+                localStorage.setItem('anonymousMessages', JSON.stringify(updated));
             }
+        };
 
-            // Helper function to get time ago
-            function getTimeAgo(date) {
-                const seconds = Math.floor((new Date() - date) / 1000);
-                
-                let interval = Math.floor(seconds / 31536000);
-                if (interval >= 1) return interval + " year" + (interval === 1 ? "" : "s") + " ago";
-                
-                interval = Math.floor(seconds / 2592000);
-                if (interval >= 1) return interval + " month" + (interval === 1 ? "" : "s") + " ago";
-                
-                interval = Math.floor(seconds / 86400);
-                if (interval >= 1) return interval + " day" + (interval === 1 ? "" : "s") + " ago";
-                
-                interval = Math.floor(seconds / 3600);
-                if (interval >= 1) return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
-                
-                interval = Math.floor(seconds / 60);
-                if (interval >= 1) return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
-                
-                return "just now";
+        // Format time
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Format date
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString([], { 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Get time remaining
+        function getTimeRemaining(expiryTime) {
+            if (!expiryTime) return null;
+            
+            const now = new Date();
+            const expiryDate = new Date(expiryTime);
+            const diff = expiryDate - now;
+            
+            if (diff <= 0) return 'expired';
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            
+            return `${hours} jam ${minutes} menit`;
+        }
+
+        // Render messages
+        function renderMessages() {
+            const container = document.getElementById('messages-container');
+            const messages = messageStorage.getMessages();
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-gray-500">
+                        <i class="fas fa-comment-slash text-4xl mb-3 opacity-50"></i>
+                        <p>Belum ada pesan</p>
+                    </div>
+                `;
+                document.getElementById('message-count').textContent = '0 pesan';
+                return;
             }
-
-            // Post new message
-            postButton.addEventListener('click', function() {
-                const messageContent = messageInput.value.trim();
+            
+            let html = '';
+            const now = new Date();
+            
+            messages.forEach(msg => {
+                const expiryStatus = msg.expiryTime ? 
+                    (new Date(msg.expiryTime) < now ? 'expired' : 'expiring-soon') : 
+                    'permanent';
                 
-                if (messageContent) {
-                    const newMessage = {
-                        content: messageContent,
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    messages.push(newMessage);
-                    localStorage.setItem('anonymousMessages', JSON.stringify(messages));
-                    messageInput.value = '';
-                    displayMessages();
-                } else {
-                    alert("Please enter a message before posting");
+                const timeRemaining = msg.expiryTime ? getTimeRemaining(msg.expiryTime) : 'Permanen';
+                const isExpiringSoon = timeRemaining && timeRemaining !== 'expired' && timeRemaining !== 'Permanen' && parseInt(timeRemaining.split(' ')[0]) <= 6;
+                
+                html += `
+                    <div class="message bg-white rounded-lg shadow-sm p-4 ${expiryStatus === 'expired' ? 'expired' : ''} ${isExpiringSoon ? 'expiring-soon' : ''}">
+                        <div class="flex justify-between items-start">
+                            <p class="flex-1 text-gray-800">${msg.content}</p>
+                            <button onclick="deleteMessage('${msg.id}')" class="ml-2 text-gray-400 hover:text-red-500">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        <div class="mt-3 flex justify-between items-center text-xs text-gray-500">
+                            <span>${formatDate(msg.timestamp)}</span>
+                            <span class="${expiryStatus === 'expired' ? 'text-red-600' : expiryStatus === 'expiring-soon' ? 'text-yellow-600' : 'text-gray-600'}">
+                                ${timeRemaining === 'expired' ? 'EXPIRED' : timeRemaining || 'Permanen'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            document.getElementById('message-count').textContent = `${messages.length} pesan`;
+            
+            // Auto-delete expired messages
+            messages.forEach(msg => {
+                if (msg.expiryTime && new Date(msg.expiryTime) < now) {
+                    setTimeout(() => {
+                        messageStorage.deleteMessage(msg.id);
+                        renderMessages();
+                    }, 5000);
                 }
             });
+        }
 
-            // Allow pressing Enter to post (Shift+Enter for new line)
-            messageInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    postButton.click();
-                }
-            });
+        // Delete message
+        window.deleteMessage = function(id) {
+            messageStorage.deleteMessage(id);
+            renderMessages();
+        }
 
-            // Initial display
-            displayMessages();
+        // Handle form submission
+        document.getElementById('post-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const content = document.getElementById('message-content').value.trim();
+            const expires = document.getElementById('expiry-toggle').checked;
+            
+            if (!content) return;
+            
+            messageStorage.addMessage(content, expires);
+            document.getElementById('message-content').value = '';
+            renderMessages();
+        });
 
-            // Auto-resize textarea
-            messageInput.addEventListener('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderMessages();
+            
+            // Auto-refresh every minute
+            setInterval(renderMessages, 60000);
         });
     </script>
 </body>
 </html>
+
