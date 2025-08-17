@@ -1,216 +1,403 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AnonShare - Anonymous Social Media</title>
+    <title>AnonimPekok - Platform Sosial Media Anonim</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f5f5;
+        .fade-in {
+            animation: fadeIn 0.5s;
         }
-        
-        .post {
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #6b21a8 0%, #4338ca 100%);
+        }
+        .post-card {
             transition: all 0.3s ease;
         }
-        
-        .post:hover {
-            transform: translateY(-5px);
+        .post-card:hover {
+            transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        
-        .expires-tag {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: rgba(0,0,0,0.7);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
         }
     </style>
 </head>
-<body class="min-h-screen">
-    <header class="bg-black text-white py-4 px-6 shadow-md">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold">AnonShare</h1>
-            <button id="uploadBtn" class="bg-white text-black px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition">
-                Upload Content
-            </button>
+<body class="bg-gray-100 min-h-screen">
+    <header class="gradient-bg text-white py-6 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold">AnonimPekok</h1>
+                <p class="text-sm opacity-80">Di mana kebebasan berbicara tetap terjaga</p>
+            </div>
         </div>
     </header>
 
-    <main class="container mx-auto py-8 px-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="postsGrid">
-            <!-- Posts will be loaded here -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-3xl mx-auto">
+            <!-- Form Upload -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-semibold mb-4">Buat Postingan Anonim</h2>
+                <form id="postForm" class="space-y-4">
+                    <div>
+                        <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Tulis sesuatu...</label>
+                        <textarea id="content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600" placeholder="Apa yang ingin Anda ungkapkan hari ini?"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Atau unggah gambar</label>
+                        <input type="file" id="image" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
+                    </div>
+                    
+                    <div class="flex items-center justify-end">
+                        <button type="button" id="previewBtn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 mr-2">Pratinjau</button>
+                        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">Posting</button>
+                    </div>
+                </form>
+
+                <!-- Preview Section -->
+                <div id="previewContainer" class="mt-6 hidden">
+                    <h3 class="text-lg font-medium mb-2">Pratinjau Postingan</h3>
+                    <div id="previewContent" class="bg-gray-50 rounded-lg p-4 border border-gray-200"></div>
+                </div>
+            </div>
+
+            <!-- Postingan -->
+            <div id="postsContainer">
+                <h2 class="text-xl font-semibold mb-4">Postingan Terbaru</h2>
+                <div id="loading" class="text-center py-8">
+                    <p class="text-gray-500">Memuat postingan...</p>
+                </div>
+                <div id="postsList" class="space-y-4"></div>
+                <div id="noPosts" class="text-center py-8 hidden">
+                    <p class="text-gray-500">Belum ada postingan. Jadilah yang pertama!</p>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Upload Modal -->
-    <div id="uploadModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg max-w-md w-full p-6 relative">
-            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-            
-            <h2 class="text-xl font-bold mb-4">Upload Anonymous Content</h2>
-            
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="fileInput">
-                    Select Image/Video
-                </label>
-                <input type="file" id="fileInput" accept="image/*,video/*" class="w-full border rounded-md p-2">
-            </div>
-            
-            <button id="submitUpload" class="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800 transition">
-                Post Anonymously
-            </button>
-            
-            <p class="text-gray-500 text-sm mt-3">
-                Note: All posts will be automatically deleted after 3 days.
-            </p>
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p>AnonimPekok - &copy; 2023 Platform Sosial Media Anonim</p>
+            <p class="text-sm text-gray-400 mt-2">Postingan akan otomatis terhapus setelah 7 hari</p>
         </div>
-    </div>
+    </footer>
 
     <script>
-        // Simulated database using localStorage
-        const dbKey = 'anonPosts';
-        
-        // Initialize modal functionality
-        const uploadBtn = document.getElementById('uploadBtn');
-        const uploadModal = document.getElementById('uploadModal');
-        const closeModal = document.getElementById('closeModal');
-        const fileInput = document.getElementById('fileInput');
-        const submitUpload = document.getElementById('submitUpload');
-        const postsGrid = document.getElementById('postsGrid');
-        
-        uploadBtn.addEventListener('click', () => {
-            uploadModal.classList.remove('hidden');
-            uploadModal.classList.add('flex');
-        });
-        
-        closeModal.addEventListener('click', () => {
-            uploadModal.classList.add('hidden');
-            uploadModal.classList.remove('flex');
-        });
-        
-        // Load posts from localStorage
-        function loadPosts() {
-            const posts = JSON.parse(localStorage.getItem(dbKey)) || [];
-            postsGrid.innerHTML = '';
-            
-            // Filter out expired posts and update the list
-            const currentTime = new Date().getTime();
-            const validPosts = posts.filter(post => {
-                return currentTime < post.expiresAt;
+        // Database setup
+        let db;
+        const DB_NAME = 'AnonimPekokDB';
+        const STORE_NAME = 'posts';
+        const VERSION = 1;
+
+        // Initialize database
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, VERSION);
+                
+                request.onupgradeneeded = function(event) {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('timestamp', 'timestamp', { unique: false });
+                    }
+                };
+                
+                request.onsuccess = function(event) {
+                    db = event.target.result;
+                    resolve(db);
+                };
+                
+                request.onerror = function(event) {
+                    console.error('IndexedDB error:', event.target.error);
+                    reject('Error opening database');
+                };
             });
+        }
+
+        // Add post to database
+        function addPost(content, imageUrl = null) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                
+                const timestamp = Date.now();
+                const expiresAt = timestamp + (7 * 24 * 60 * 60 * 1000); // 7 days from now
+                
+                const post = {
+                    content: content,
+                    imageUrl: imageUrl,
+                    timestamp: timestamp,
+                    expiresAt: expiresAt
+                };
+                
+                const request = store.add(post);
+                
+                request.onsuccess = function() {
+                    resolve();
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error adding post:', event.target.error);
+                    reject('Error adding post');
+                };
+            });
+        }
+
+        // Get all posts from database (non-expired)
+        function getAllPosts() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readonly');
+                const store = transaction.objectStore(STORE_NAME);
+                const index = store.index('timestamp');
+                const request = index.getAll();
+                
+                request.onsuccess = function() {
+                    const now = Date.now();
+                    const posts = request.result.filter(post => post.expiresAt > now);
+                    posts.sort((a, b) => b.timestamp - a.timestamp); // Newest first
+                    resolve(posts);
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error getting posts:', event.target.error);
+                    reject('Error getting posts');
+                };
+            });
+        }
+
+        // Delete expired posts
+        function cleanExpiredPosts() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(STORE_NAME);
+                const index = store.index('timestamp');
+                const request = index.getAll();
+                
+                request.onsuccess = function() {
+                    const now = Date.now();
+                    const expiredPosts = request.result.filter(post => post.expiresAt <= now);
+                    
+                    if (expiredPosts.length === 0) {
+                        resolve();
+                        return;
+                    }
+                    
+                    const deleteRequests = expiredPosts.map(post => {
+                        return new Promise((resolveDelete, rejectDelete) => {
+                            const req = store.delete(post.id);
+                            req.onsuccess = resolveDelete;
+                            req.onerror = rejectDelete;
+                        });
+                    });
+                    
+                    Promise.all(deleteRequests)
+                        .then(resolve)
+                        .catch(reject);
+                };
+                
+                request.onerror = function(event) {
+                    console.error('Error checking expired posts:', event.target.error);
+                    reject('Error checking expired posts');
+                };
+            });
+        }
+
+        // Format time since post was created
+        function formatTimeAgo(timestamp) {
+            const now = Date.now();
+            const seconds = Math.floor((now - timestamp) / 1000);
             
-            // Update storage with only valid posts
-            if (validPosts.length !== posts.length) {
-                localStorage.setItem(dbKey, JSON.stringify(validPosts));
+            if (seconds < 60) return ${seconds} detik yang lalu;
+            if (seconds < 3600) return ${Math.floor(seconds / 60)} menit yang lalu;
+            if (seconds < 86400) return ${Math.floor(seconds / 3600)} jam yang lalu;
+            return ${Math.floor(seconds / 86400)} hari yang lalu;
+        }
+
+        // Create post element for DOM
+        function createPostElement(post) {
+            const postElement = document.createElement('div');
+            postElement.className = 'post-card bg-white rounded-lg shadow-md p-6 fade-in';
+            
+            // Content
+            const contentElement = document.createElement('p');
+            contentElement.className = 'mb-4 text-gray-700';
+            contentElement.textContent = post.content;
+            
+            // Image if exists
+            let imageElement = null;
+            if (post.imageUrl) {
+                imageElement = document.createElement('div');
+                imageElement.className = 'mb-4 rounded-lg overflow-hidden';
+                
+                const img = document.createElement('img');
+                img.src = post.imageUrl;
+                img.alt = 'Gambar unggahan pengguna';
+                img.className = 'w-full h-auto max-h-96 object-contain rounded-lg';
+                
+                imageElement.appendChild(img);
             }
             
-            // Display posts
-            validPosts.forEach((post, index) => {
-                const timeLeft = Math.ceil((post.expiresAt - currentTime) / (1000 * 60 * 60 * 24));
+            // Footer with timestamp
+            const footerElement = document.createElement('div');
+            footerElement.className = 'text-sm text-gray-500 mt-4 flex justify-between items-center';
+            
+            const timeElement = document.createElement('span');
+            timeElement.textContent = formatTimeAgo(post.timestamp);
+            
+            const expiresElement = document.createElement('span');
+            const timeLeft = Math.ceil((post.expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+            expiresElement.textContent = Akan terhapus dalam ${timeLeft} hari;
+            
+            footerElement.appendChild(timeElement);
+            footerElement.appendChild(expiresElement);
+            
+            // Assemble post
+            postElement.appendChild(contentElement);
+            if (imageElement) postElement.appendChild(imageElement);
+            postElement.appendChild(footerElement);
+            
+            return postElement;
+        }
+
+        // Render all posts
+        async function renderPosts() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('noPosts').classList.add('hidden');
+            
+            try {
+                await cleanExpiredPosts();
+                const posts = await getAllPosts();
                 
-                const postElement = document.createElement('div');
-                postElement.className = 'post bg-white rounded-lg overflow-hidden shadow-md relative';
+                const postsList = document.getElementById('postsList');
+                postsList.innerHTML = '';
                 
-                let mediaElement;
-                if (post.type.includes('image')) {
-                    mediaElement = `
-                        <div class="w-full h-64 bg-gray-100 overflow-hidden">
-                            <img src="${post.url}" alt="User uploaded anonymous image content" class="w-full h-full object-cover">
-                        </div>
-                    `;
-                } else if (post.type.includes('video')) {
-                    mediaElement = `
-                        <div class="w-full h-64 bg-black flex items-center justify-center overflow-hidden">
-                            <video controls class="w-full h-full">
-                                <source src="${post.url}" type="${post.type}">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                    `;
+                if (posts.length === 0) {
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('noPosts').classList.remove('hidden');
+                    return;
                 }
                 
-                postElement.innerHTML = `
-                    ${mediaElement}
-                    <div class="p-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-gray-500 text-sm">Anonymous</span>
-                        </div>
-                    </div>
-                    <div class="expires-tag">Expires in ${timeLeft} day${timeLeft !== 1 ? 's' : ''}</div>
-                `;
+                posts.forEach(post => {
+                    postsList.appendChild(createPostElement(post));
+                });
                 
-                postsGrid.appendChild(postElement);
-            });
-            
-            // If no posts, show empty state
-            if (validPosts.length === 0) {
-                postsGrid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/c7983a8d-325b-4a88-9348-c860bcee436a.png" alt="Empty feed illustration showing a blank canvas with a paintbrush" class="mx-auto mb-4 rounded-lg max-w-xs">
-                        <h3 class="text-xl font-semibold mb-2">No posts yet</h3>
-                        <p class="text-gray-500">Be the first to share something anonymously</p>
-                    </div>
-                `;
+                document.getElementById('loading').classList.add('hidden');
+            } catch (error) {
+                console.error('Error rendering posts:', error);
+                document.getElementById('loading').classList.add('hidden');
+                alert('Gagal memuat postingan. Silakan muat ulang halaman.');
             }
         }
-        
-        // Handle file upload (simulated - in real app, you'd upload to a server)
-        submitUpload.addEventListener('click', () => {
-            const file = fileInput.files[0];
+
+        // Preview post
+        document.getElementById('previewBtn').addEventListener('click', function() {
+            const content = document.getElementById('content').value.trim();
+            const imageInput = document.getElementById('image');
             
-            if (!file) {
-                alert('Please select a file');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewContent = document.getElementById('previewContent');
+            
+            previewContent.innerHTML = '';
+            
+            if (!content && imageInput.files.length === 0) {
+                alert('Silakan masukkan teks atau pilih gambar terlebih dahulu');
                 return;
             }
             
-            // In a real app, you would upload the file to a server here
-            // For this demo, we'll simulate the uploaded file URL
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const posts = JSON.parse(localStorage.getItem(dbKey)) || [];
-                
-                const newPost = {
-                    id: Date.now(),
-                    url: e.target.result, // Simulated URL - in real app this would be from your server
-                    type: file.type,
-                    expiresAt: new Date().getTime() + (3 * 24 * 60 * 60 * 1000), // 3 days from now
-                    createdAt: new Date().getTime()
-                };
-                
-                posts.unshift(newPost);
-                localStorage.setItem(dbKey, JSON.stringify(posts));
-                
-                // Reset and close modal
-                fileInput.value = '';
-                uploadModal.classList.add('hidden');
-                uploadModal.classList.remove('flex');
-                
-                // Reload posts
-                loadPosts();
-            };
+            if (content) {
+                const contentElement = document.createElement('p');
+                contentElement.className = 'mb-4 text-gray-700';
+                contentElement.textContent = content;
+                previewContent.appendChild(contentElement);
+            }
             
-            reader.readAsDataURL(file); // Using data URL in this demo - in real app you'd upload to a server
+            if (imageInput.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageElement = document.createElement('div');
+                    imageElement.className = 'mb-4 rounded-lg overflow-hidden';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Pratinjau gambar unggahan';
+                    img.className = 'w-full h-auto max-h-96 object-contain rounded-lg';
+                    
+                    imageElement.appendChild(img);
+                    previewContent.appendChild(imageElement);
+                };
+                reader.readAsDataURL(imageInput.files[0]);
+            }
+            
+            previewContainer.classList.remove('hidden');
         });
-        
-        // Initial load
-        loadPosts();
-        
-        // Check for expired posts periodically
-        setInterval(loadPosts, 3600000); // Check every hour
+
+        // Handle form submission
+        document.getElementById('postForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const content = document.getElementById('content').value.trim();
+            const imageInput = document.getElementById('image');
+            
+            if (!content && imageInput.files.length === 0) {
+                alert('Silakan masukkan teks atau pilih gambar terlebih dahulu');
+                return;
+            }
+            
+            try {
+                let imageUrl = null;
+                
+                if (imageInput.files.length > 0) {
+                    const reader = new FileReader();
+                    const file = imageInput.files[0];
+                    
+                    if (file.size > 2 * 1024 * 1024) { // 2MB max
+                        alert('Ukuran gambar terlalu besar (maksimal 2MB)');
+                        return;
+                    }
+                    
+                    await new Promise((resolve) => {
+                        reader.onload = function(e) {
+                            imageUrl = e.target.result;
+                            resolve();
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+                
+                await addPost(content, imageUrl);
+                
+                // Reset form
+                document.getElementById('content').value = '';
+                document.getElementById('image').value = '';
+                document.getElementById('previewContainer').classList.add('hidden');
+                
+                // Refresh posts
+                await renderPosts();
+                
+                // Show success message
+                alert('Postingan Anda telah berhasil diunggah secara anonim!');
+            } catch (error) {
+                console.error('Error submitting post:', error);
+                alert('Gagal mengunggah postingan. Silakan coba lagi.');
+            }
+        });
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await initDB();
+                await renderPosts();
+                
+                // Refresh posts periodically
+                setInterval(renderPosts, 60 * 1000); // Every minute
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('loading').textContent = 'Gagal memuat halaman. Silakan muat ulang.';
+            }
+        });
     </script>
 </body>
 </html>
-
-
