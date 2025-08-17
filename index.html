@@ -3,319 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostPost - Anonymous Social Platform</title>
+    <title>Ephemeral - Anonymous Social Network</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        .message-card {
-            transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease-out;
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .expiring-soon {
-            border-left: 4px solid #f59e0b;
+        .post {
+            transition: all 0.3s ease;
         }
-        .expired {
-            opacity: 0.7;
-            border-left: 4px solid #ef4444;
+        .post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
-        .pulse {
-            animation: pulse 2s infinite;
+        .expiring {
+            position: relative;
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        .expiring:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f56565, transparent);
+            animation: progress 86400s linear forwards;
+        }
+        @keyframes progress {
+            0% { width: 100%; }
+            100% { width: 0%; }
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
+<body class="bg-gray-100">
+    <div class="gradient-bg min-h-screen">
         <!-- Header -->
-        <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-xl p-6 mb-8">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-3xl font-bold">GhostPost</h1>
-                    <p class="text-indigo-200 mt-2">Speak freely. Stay anonymous. Messages vanish in 24 hours.</p>
+        <header class="bg-white bg-opacity-10 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <img src="https://placehold.co/40" alt="Ephemeral logo - hourglass with sand flowing through it in purple gradient colors" class="rounded-full">
+                    <h1 class="text-2xl font-bold text-white">Ephemeral</h1>
                 </div>
-                <div class="flex items-center space-x-2 bg-black bg-opacity-20 px-4 py-2 rounded-full">
-                    <span id="user-status">Anonymous Ghost</span>
+                <div class="text-white">
+                    <span class="hidden md:inline">Posts disappear in 24 hours</span>
+                    <span class="md:hidden">24h</span>
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <div class="flex flex-col lg:flex-row gap-8">
-            <!-- Post Form -->
-            <div class="lg:w-1/3">
-                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-                    <h2 class="text-xl font-semibold mb-4">Create Anonymous Post</h2>
-                    <form id="post-form" class="space-y-4">
-                        <div>
-                            <textarea id="post-content" rows="5" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent" placeholder="What's on your mind?" required></textarea>
-                        </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" id="enable-expiry" checked class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                            <label for="enable-expiry" class="ml-2 block text-sm text-gray-700">
-                                Auto-delete after 24 hours
-                            </label>
-                        </div>
-                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 pulse">
-                            Post Anonymously
-                        </button>
-                    </form>
-
-                    <div class="mt-8 pt-6 border-t border-gray-200">
-                        <h3 class="text-lg font-medium mb-3">Community Guidelines</h3>
-                        <ul class="space-y-2 text-sm text-gray-600">
-                            <li class="flex items-start">
-                                <svg class="flex-shrink-0 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="ml-2">No personal information</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="flex-shrink-0 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="ml-2">Be respectful</span>
-                            </li>
-                            <li class="flex items-start">
-                                <svg class="flex-shrink-0 h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span class="ml-2">Posts auto-delete in 24h</span>
-                            </li>
-                        </ul>
+        <main class="container mx-auto px-4 py-8">
+            <!-- Post Creation -->
+            <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg shadow-lg p-6 mb-8 fade-in">
+                <h2 class="text-xl font-semibold text-white mb-4">Share something anonymously</h2>
+                <textarea id="postContent" class="w-full p-4 rounded-lg border border-gray-300 bg-white bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="What's on your mind? (Max 500 characters)" maxlength="500" rows="4"></textarea>
+                <div class="flex justify-between items-center mt-4">
+                    <div class="text-xs text-white">
+                        <span id="charCounter">0</span>/500
                     </div>
+                    <button id="postButton" class="bg-white text-purple-600 font-semibold py-2 px-6 rounded-lg hover:bg-gray-100 transition duration-200 flex items-center space-x-2">
+                        <span>Post</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <!-- Messages Feed -->
-            <div class="lg:w-2/3">
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h2 class="text-xl font-semibold">Recent Ghost Posts</h2>
-                        <span id="posts-count" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            Loading...
-                        </span>
-                    </div>
-                    <div id="posts-container" class="divide-y divide-gray-200">
-                        <div class="py-12 text-center">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No posts yet</h3>
-                            <p class="mt-1 text-sm text-gray-500">Be the first to share something anonymously</p>
-                        </div>
-                    </div>
+            <!-- Posts Feed -->
+            <div class="space-y-6" id="postsContainer">
+                <div class="bg-white rounded-lg shadow-lg p-6 fade-in">
+                    <p class="text-gray-700">Loading posts...</p>
                 </div>
             </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="mt-12 text-center text-sm text-gray-500">
-            <p>GhostPost - Anonymous Social Platform | Messages auto-delete after 24 hours</p>
-            <p class="mt-1">Built with Supabase & TailwindCSS</p>
-        </footer>
+        </main>
     </div>
 
     <script>
-        // Initialize Supabase client
+        // Supabase configuration
         const supabaseUrl = 'https://xuvniwctteaqoygfbaub.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1dm5pd2N0dGVhcW95Z2ZiYXViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTg0NTQ2NTUsImV4cCI6MjAzNDAzMDY1NX0.vp1HfUk4tfkb-LvJwLWBGZ5dWz0It1BYLBFr8oNEL8M';
-        
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1dm5pd2N0dGVhcW95Z2ZiY3ViIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTk1MDQ0NDksImV4cCI6MjAxNTA4MDQ0OX0.5Z1kz1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X1X';
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        
-        // DOM Elements
-        const postForm = document.getElementById('post-form');
-        const postsContainer = document.getElementById('posts-container');
-        const postsCount = document.getElementById('posts-count');
-        
-        // Anonymous user ID
-        let userId = localStorage.getItem('ghost_user_id');
-        if (!userId) {
-            userId = 'ghost_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('ghost_user_id', userId);
+
+        // DOM elements
+        const postContent = document.getElementById('postContent');
+        const postButton = document.getElementById('postButton');
+        const postsContainer = document.getElementById('postsContainer');
+        const charCounter = document.getElementById('charCounter');
+
+        // Character counter for textarea
+        postContent.addEventListener('input', () => {
+            charCounter.textContent = postContent.value.length;
+        });
+
+        // Function to generate a random anonymous identifier
+        function generateAnonymousId() {
+            const adjectives = ['Mysterious', 'Unknown', 'Secret', 'Hidden', 'Anonymous', 'Private', 'Ghostly', 'Shadowy', 'Incognito', 'Unseen'];
+            const nouns = ['Stranger', 'Visitor', 'Phantom', 'Whisperer', 'Specter', 'Silhouette', 'Wanderer', 'Observer', 'Lurker', 'Presence'];
+            const randomNumber = Math.floor(Math.random() * 10000);
+            
+            const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            
+            return `${adjective}${noun}${randomNumber}`;
         }
-        
-        // Format time remaining
-        function formatTimeRemaining(expiresAt) {
-            if (!expiresAt) return 'Permanent';
-            
-            const now = new Date();
-            const expiryDate = new Date(expiresAt);
-            const diff = expiryDate - now;
-            
-            if (diff <= 0) return 'Expired';
-            
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            
-            if (hours < 1) return `${minutes}m left`;
-            return `${hours}h ${minutes}m left`;
+
+        // Function to create a new post
+        async function createPost() {
+            const content = postContent.value.trim();
+            if (!content) return;
+
+            const anonymousId = localStorage.getItem('anonymousId') || generateAnonymousId();
+            if (!localStorage.getItem('anonymousId')) {
+                localStorage.setItem('anonymousId', anonymousId);
+            }
+
+            const { data, error } = await supabase
+                .from('posts')
+                .insert([
+                    { 
+                        content: content,
+                        anonymous_id: anonymousId,
+                        created_at: new Date().toISOString(),
+                        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                    }
+                ])
+                .select();
+
+            if (error) {
+                console.error('Error creating post:', error);
+                alert('Failed to create post. Please try again.');
+            } else {
+                postContent.value = '';
+                charCounter.textContent = '0';
+                loadPosts();
+            }
         }
-        
-        // Format timestamp
-        function formatTimestamp(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + 
-                   ' • ' + date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        }
-        
-        // Render posts
-        async function renderPosts() {
-            const now = new Date();
-            
-            // Get posts from Supabase
+
+        // Function to load posts from Supabase
+        async function loadPosts() {
+            // First delete expired posts
+            await supabase
+                .from('posts')
+                .delete()
+                .lt('expires_at', new Date().toISOString());
+
+            // Then fetch active posts
             const { data: posts, error } = await supabase
                 .from('posts')
                 .select('*')
-                .order('created_at', { ascending: false })
-                .limit(100);
-            
+                .order('created_at', { ascending: false });
+
             if (error) {
-                console.error('Error fetching posts:', error);
+                console.error('Error loading posts:', error);
+                postsContainer.innerHTML = '<div class="bg-white rounded-lg shadow-lg p-6 fade-in"><p class="text-gray-700">Error loading posts. Please refresh the page.</p></div>';
                 return;
             }
-            
-            // Clear container
-            postsContainer.innerHTML = '';
-            
+
             if (posts.length === 0) {
-                postsContainer.innerHTML = `
-                    <div class="py-12 text-center">
-                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        <h3 class="mt-2 text-sm font-medium text-gray-900">No posts yet</h3>
-                        <p class="mt-1 text-sm text-gray-500">Be the first to share something anonymously</p>
-                    </div>
-                `;
-                postsCount.textContent = '0 posts';
+                postsContainer.innerHTML = '<div class="bg-white rounded-lg shadow-lg p-6 fade-in"><p class="text-gray-700">No posts yet. Be the first to share something!</p></div>';
                 return;
             }
-            
-            // Count active posts
-            const activePosts = posts.filter(post => {
-                if (!post.expires_at) return true;
-                return new Date(post.expires_at) > now;
-            });
-            postsCount.textContent = `${activePosts.length} ${activePosts.length === 1 ? 'post' : 'posts'}`;
-            
-            // Render each post
+
+            postsContainer.innerHTML = '';
             posts.forEach(post => {
                 const postElement = document.createElement('div');
-                postElement.className = 'message-card p-4 hover:bg-gray-50';
+                postElement.className = 'bg-white rounded-lg shadow-lg p-6 fade-in post expiring';
                 
-                const expiresAt = post.expires_at;
-                const timeRemaining = formatTimeRemaining(expiresAt);
-                const isExpired = timeRemaining === 'Expired';
-                const isExpiringSoon = expiresAt && 
-                                      new Date(expiresAt) > now && 
-                                      new Date(expiresAt) - now < 6 * 60 * 60 * 1000;
+                // Calculate time remaining in hours and minutes
+                const expiresAt = new Date(post.expires_at);
+                const now = new Date();
+                const timeRemainingMs = expiresAt - now;
+                const hoursRemaining = Math.floor(timeRemainingMs / (1000 * 60 * 60));
+                const minutesRemaining = Math.floor((timeRemainingMs / (1000 * 60)) % 60);
+                
+                const isOwnPost = post.anonymous_id === localStorage.getItem('anonymousId');
                 
                 postElement.innerHTML = `
-                    <div class="flex justify-between">
-                        <p class="text-gray-800 whitespace-pre-wrap">${post.content}</p>
-                        ${isExpired ? 
-                            '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">EXPIRED</span>' : 
-                            ''}
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center">
+                            <img src="https://placehold.co/40" alt="Anonymous user avatar - generic silhouette with ${post.anonymous_id.substring(0, 2)} initials in random color gradient" class="rounded-full w-10 h-10 mr-3">
+                            <div>
+                                <h3 class="font-medium text-gray-900">${post.anonymous_id}</h3>
+                                <p class="text-xs text-gray-500">Posted ${formatTimeAgo(new Date(post.created_at))}</p>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            Expires in ${hoursRemaining}h ${minutesRemaining}m
+                        </div>
                     </div>
-                    <div class="mt-3 flex justify-between items-center text-sm text-gray-500">
-                        <span>${formatTimestamp(post.created_at)}</span>
-                        <span class="${isExpiringSoon ? 'text-yellow-600' : 'text-gray-600'}">
-                            ${timeRemaining}
-                        </span>
-                    </div>
+                    <p class="text-gray-700 mt-3 mb-4">${post.content}</p>
+                    ${isOwnPost ? '<button class="delete-post text-xs text-red-500 hover:text-red-700" data-id="' + post.id + '">Delete</button>' : ''}
                 `;
-                
-                if (isExpiringSoon) {
-                    postElement.classList.add('expiring-soon');
-                }
-                
-                if (isExpired) {
-                    postElement.classList.add('expired');
-                    // Schedule for deletion
-                    setTimeout(() => {
-                        postElement.classList.add('opacity-0', 'transition-opacity', 'duration-500');
-                        setTimeout(() => {
-                            supabase
-                                .from('posts')
-                                .delete()
-                                .eq('id', post.id)
-                                .then(() => renderPosts());
-                        }, 500);
-                    }, 2000);
-                }
                 
                 postsContainer.appendChild(postElement);
             });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-post').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const postId = e.target.getAttribute('data-id');
+                    const { error } = await supabase
+                        .from('posts')
+                        .delete()
+                        .eq('id', postId);
+                    
+                    if (error) {
+                        console.error('Error deleting post:', error);
+                        alert('Failed to delete post. Please try again.');
+                    } else {
+                        loadPosts();
+                    }
+                });
+            });
         }
-        
-        // Handle form submission
-        postForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+
+        // Function to format time ago
+        function formatTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
             
-            const content = document.getElementById('post-content').value.trim();
-            const enableExpiry = document.getElementById('enable-expiry').checked;
+            let interval = Math.floor(seconds / 31536000);
+            if (interval >= 1) return interval + " year" + (interval === 1 ? "" : "s") + " ago";
             
-            if (!content) return;
+            interval = Math.floor(seconds / 2592000);
+            if (interval >= 1) return interval + " month" + (interval === 1 ? "" : "s") + " ago";
             
-            try {
-                const expiresAt = enableExpiry ? 
-                    new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : 
-                    null;
-                
-                const { data, error } = await supabase
-                    .from('posts')
+            interval = Math.floor(seconds / 86400);
+            if (interval >= 1) return interval + " day" + (interval === 1 ? "" : "s") + " ago";
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval >= 1) return interval + " hour" + (interval === 1 ? "" : "s") + " ago";
+            
+            interval = Math.floor(seconds / 60);
+            if (interval >= 1) return interval + " minute" + (interval === 1 ? "" : "s") + " ago";
+            
+            return Math.floor(seconds) + " second" + (seconds === 1 ? "" : "s") + " ago";
+        }
+
+        // Event listeners
+        postButton.addEventListener('click', createPost);
+        postContent.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                createPost();
+            }
+        });
+
+        // Initialize the app
+        loadPosts();
+        setInterval(loadPosts, 60000); // Refresh every minute
+
+        // Create posts table if it doesn't exist
+        async function initializeDatabase() {
+            const { data: tableExists } = await supabase
+                .from('pg_tables')
+                .select('tablename')
+                .eq('tablename', 'posts')
+                .single();
+
+            if (!tableExists) {
+                const { error } = await supabase
+                    .from('sql')
                     .insert([
-                        { 
-                            content: content,
-                            user_id: userId,
-                            expires_at: expiresAt
-                        }
+                        { sql: 'CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, content TEXT NOT NULL, anonymous_id TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), expires_at TIMESTAMPTZ NOT NULL)' }
                     ]);
                 
-                if (error) throw error;
-                
-                document.getElementById('post-content').value = '';
-                renderPosts();
-                
-            } catch (error) {
-                console.error('Error creating post:', error);
-                alert('Failed to create post. Please try again.');
-            }
-        });
-        
-        // Initialize anonymous user session
-        async function initAnonymousSession() {
-            try {
-                await supabase.auth.signInAnonymously();
-            } catch (error) {
-                console.error('Anonymous sign-in error:', error);
+                if (error) {
+                    console.error('Error creating posts table:', error);
+                }
             }
         }
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            initAnonymousSession();
-            renderPosts();
-            
-            // Auto-refresh every 30 seconds
-            setInterval(renderPosts, 30000);
-            
-            // Enable real-time updates
-            supabase
-                .channel('posts')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-                    renderPosts();
-                })
-                .subscribe();
-        });
+
+        initializeDatabase();
     </script>
 </body>
 </html>
